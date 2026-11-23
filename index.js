@@ -91,7 +91,8 @@ function parsePersonaCard(text) {
 }
 
 async function loadPersona() {
-  if (personaLoaded) return personaCache
+  // 只有「成功」才锁缓存；失败允许下次重试（服务刚启动时会超时）
+  if (personaLoaded && personaCache && personaCache.ok) return personaCache
   personaLoaded = true
   // Windows：本地 DPAPI 解密（保持原行为）
   if (process.platform === 'win32' && fs.existsSync(personaEnc()) && fs.existsSync(keyFile())) {
@@ -109,7 +110,7 @@ async function loadPersona() {
   }
   // Linux/macOS：不碰 DPAPI，向中枢服务要人设（服务端用本机 AES 密钥解密）
   try {
-    const r = await fetch(HUB_API + '/api/persona', { signal: AbortSignal.timeout(3000) })
+    const r = await fetch(HUB_API + '/api/persona', { signal: AbortSignal.timeout(8000) })
     const j = await r.json()
     if (j && j.ok && typeof j.text === 'string') {
       personaCache = { ok: true, fields: parsePersonaCard(j.text), error: null, loadedAt: Date.now(), source: j.source || 'hub' }
@@ -117,6 +118,7 @@ async function loadPersona() {
       personaCache = { ok: false, fields: DEFAULT_PERSONA, error: (j && j.error) || '中枢服务没有人设卡' }
     }
   } catch (e) {
+    personaLoaded = false // 允许重试
     personaCache = { ok: false, fields: DEFAULT_PERSONA, error: '中枢服务未运行：' + String(e && e.message || e) }
   }
   return personaCache
