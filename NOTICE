@@ -1,0 +1,19 @@
+NOTICE
+
+本仓库是 dsh-arc-hub 的 Linux/macOS 移植版，派生自：
+
+  原项目：dsh-arc-hub
+  原作者：499596849-jpg
+  原仓库：https://github.com/499596849-jpg/dsh-arc-hub
+  许可：MIT（原文见 LICENSE，版权声明保留）
+
+改动清单（相对原作者 0.1.0）：
+1. 人设卡解密改为向中枢服务 GET /api/persona 获取；Windows 保留本地 DPAPI 分支。
+2. 中枢访问地址由 helper:8795 统一到 127.0.0.1:8799（可用 ARC_HUB_API 覆盖）。
+3. arc_hub_open_dir 改为调用中枢 /api/open（Linux 走 xdg-open）。
+4. 中枢根目录解析顺序：ARC_HUB_ROOT → ARC_HUB_DATA → data-dir.txt → ~/ArcDreamHub。
+5. package.json 增加 engines（node >=22.19，dsh >=0.2.2-rc.1 <0.3.0-0），版本号 0.1.0-linux.1。
+6. 修复 arc_hub_status 中 persona 变量未定义的报错（异步加载后的引用）。
+7. README 重写为移植说明。
+
+未改动：工具名称与语义、人设卡加密格式、提示词锚点卡内容、客户端界面。
