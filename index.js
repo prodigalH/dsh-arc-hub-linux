@@ -92,7 +92,10 @@ function parsePersonaCard(text) {
 
 async function loadPersona() {
   // 只有「成功」才锁缓存；失败允许下次重试（服务刚启动时会超时）
-  if (personaLoaded && personaCache && personaCache.ok) return personaCache
+  // 成功缓存 120 秒后失效：改了人设卡不用重启也能生效
+  if (personaLoaded && personaCache && personaCache.ok) {
+    if (Date.now() - (personaCache.loadedAt || 0) < 120000) return personaCache
+  }
   personaLoaded = true
   // Windows：本地 DPAPI 解密（保持原行为）
   if (process.platform === 'win32' && fs.existsSync(personaEnc()) && fs.existsSync(keyFile())) {
